@@ -1,0 +1,24 @@
+{% extends "layout.html" %}
+
+{% block title %}Homepage{% endblock %}
+
+{% block header %}
+    <h1 class="text-center">Welcome to the Personal Leave Blog</h1>
+{% endblock %}
+
+{% block content %}
+    <div class="container mt-4">
+        {% for post in posts %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h2 class="card-title">{{ post.title }}</h2>
+                    <h6 class="card-subtitle mb-2 text-muted">
+                        <strong>Author:</strong> {{ post.author }} &nbsp;|&nbsp;
+                        <strong>Date Posted:</strong> {{ post.date_posted }}
+                    </h6>
+                    <p class="card-text">{{ post.content }}</p>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+{% endblock %}

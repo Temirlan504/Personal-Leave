@@ -1,0 +1,30 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environment
+venv/
+requirements.txt
+
+# Flask instance folder
+instance/
+*.pyc
+
+# Environment variables and secrets
+.env
+
+# IDE and editor folders/files
+.vscode/
+.idea/
+*.swp
+
+# SQLite database files
+*.db
+*.sqlite3
+
+# MacOS files (if shared across OS)
+.DS_Store
+
+# Pytest cache
+.pytest_cache/
