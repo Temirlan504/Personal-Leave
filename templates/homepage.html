@@ -2,23 +2,39 @@
 
 {% block title %}Homepage{% endblock %}
 
-{% block header %}
-    <h1 class="text-center">Welcome to the Personal Leave Blog</h1>
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='homepage.css') }}">
 {% endblock %}
 
 {% block content %}
-    <div class="container mt-4">
-        {% for post in posts %}
-            <div class="card mb-3">
-                <div class="card-body">
-                    <h2 class="card-title">{{ post.title }}</h2>
-                    <h6 class="card-subtitle mb-2 text-muted">
-                        <strong>Author:</strong> {{ post.author }} &nbsp;|&nbsp;
-                        <strong>Date Posted:</strong> {{ post.date_posted }}
-                    </h6>
-                    <p class="card-text">{{ post.content }}</p>
-                </div>
+<!-- Main Content -->
+<div class="container mt-5" style="max-width: 1000px;">
+  <h2 class="greeting">{{ greeting }}, {{ users[0].first_name }}!</h2>
+
+  <div class="row mt-4 justify-content-center gap-4">
+    <!-- Vacation Card -->
+    <div class="col-md-5">
+        <div class="card shadow-sm card-height">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                <h3 class="card-title">Vacations 🏖️</h3>
+                <h1>10/14</h1>
+                <p class="text-muted">Days available</p>
+                <a href="#" class="btn btn-primary mt-2">Request vacation</a>
             </div>
-        {% endfor %}
+        </div>
     </div>
+
+    <!-- Personal Emergency Leave Card -->
+    <div class="col-md-5">
+        <div class="card shadow-sm card-height">
+            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                <h3 class="card-title">Personal Leave 🏥</h3>
+                <h1>2/5</h1>
+                <p class="text-muted">Days available</p>
+                <a href="#" class="btn btn-primary mt-2">Request personal leave</a>
+            </div>
+        </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
