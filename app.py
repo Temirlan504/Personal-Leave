@@ -1,17 +1,35 @@
+import random
+from flask import request, url_for
 from flask import Flask, render_template, flash, redirect
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
 from forms import LoginForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '4v36non75hbv8oqu3f7c'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
+db = SQLAlchemy(app)
 
-users = [
-    {'first_name': 'Alice', 'last_name': 'Johnson', 'email': 'alice@example.com', 'phone': '123-456-7890'},
-    {'first_name': 'Bob', 'last_name': 'Smith', 'email': 'bob@example.com', 'phone': '987-654-3210'}
-]
+# Models
+def get_random_image():
+    return f"profile_pics/monster{random.randint(1, 3)}.png"
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.String(40), nullable=False)
+    last_name = db.Column(db.String(40), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    phone = db.Column(db.String(15), unique=True, nullable=True)
+    image_file = db.Column(db.String(20), nullable=False, default=get_random_image)
+    password = db.Column(db.String(60), nullable=False)
 
+    def __repr__(self):
+        return f"User('{self.first_name}', '{self.last_name}', '{self.email}', '{self.phone}', '{self.image_file}')"
+
+
+# Define the homepage routes
 @app.route('/')
 def home():
+    users = User.query.all()  # Fetch all users from the database
     greeting = get_greeting()  # e.g. "morning", "afternoon", etc.
     return render_template("homepage.html",
         greeting=greeting,
@@ -37,6 +55,7 @@ def get_greeting():
         return "Hello"  # Fallback for any error (e.g. datetime failure)
     
 
+# Define the login routes
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
@@ -47,5 +66,13 @@ def login():
             flash('Login failed. Please check your email and password.', 'danger')
     return render_template("login.html", form=form)
 
+
+# Define profile page routes
+@app.route('/profile/<int:user_id>')
+def profile(user_id):
+    user = User.query.get_or_404(user_id)
+    return render_template("profile_page.html", user=user)
+
+# Application entry point
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

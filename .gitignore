@@ -28,3 +28,6 @@ instance/
 
 # Pytest cache
 .pytest_cache/
+
+# Profile pictures
+static/profile_pics/
