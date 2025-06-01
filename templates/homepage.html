@@ -11,30 +11,29 @@
 <div class="container mt-5" style="max-width: 1000px;">
   <h2 class="greeting">{{ greeting }}, {{ users[0].first_name }}!</h2>
 
-  <div class="row mt-4 justify-content-center gap-4">
-    <!-- Vacation Card -->
-    <div class="col-md-5">
-        <div class="card shadow-sm card-height">
-            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
-                <h3 class="card-title">Vacations 🏖️</h3>
-                <h1>10/14</h1>
-                <p class="text-muted">Days available</p>
-                <a href="#" class="btn btn-primary mt-2">Request vacation</a>
+    <div class="row mt-4 justify-content-center gap-4">
+        <!-- Vacation Card -->
+        <div class="col-md-5">
+            <div class="card shadow-sm card-height">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                    <h3 class="card-title">Vacations 🏖️</h3>
+                    <h1>10/14</h1>
+                    <p class="text-muted">Days available</p>
+                    <a href="#" class="btn btn-primary mt-2">Request vacation</a>
+                </div>
+            </div>
+        </div>
+        <!-- Personal Emergency Leave Card -->
+        <div class="col-md-5">
+            <div class="card shadow-sm card-height">
+                <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
+                    <h3 class="card-title">Personal Leave 🏥</h3>
+                    <h1>2/5</h1>
+                    <p class="text-muted">Days available</p>
+                    <a href="#" class="btn btn-primary mt-2">Request personal leave</a>
+                </div>
             </div>
         </div>
     </div>
-
-    <!-- Personal Emergency Leave Card -->
-    <div class="col-md-5">
-        <div class="card shadow-sm card-height">
-            <div class="card-body d-flex flex-column justify-content-center align-items-center text-center">
-                <h3 class="card-title">Personal Leave 🏥</h3>
-                <h1>2/5</h1>
-                <p class="text-muted">Days available</p>
-                <a href="#" class="btn btn-primary mt-2">Request personal leave</a>
-            </div>
-        </div>
-    </div>
-  </div>
 </div>
 {% endblock %}

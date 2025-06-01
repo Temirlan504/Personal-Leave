@@ -1,7 +1,9 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, redirect
 from datetime import datetime
+from forms import LoginForm
 
 app = Flask(__name__)
+app.config['SECRET_KEY'] = '4v36non75hbv8oqu3f7c'
 
 users = [
     {'first_name': 'Alice', 'last_name': 'Johnson', 'email': 'alice@example.com', 'phone': '123-456-7890'},
@@ -33,6 +35,17 @@ def get_greeting():
             return "Hello"  # Fallback for unexpected hour values
     except Exception:
         return "Hello"  # Fallback for any error (e.g. datetime failure)
+    
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        if form.email.data == 'alice@example.com' and form.password.data == 'password':
+            return redirect('/')
+        else:
+            flash('Login failed. Please check your email and password.', 'danger')
+    return render_template("login.html", form=form)
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)

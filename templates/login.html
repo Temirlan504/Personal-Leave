@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+{% block title %}Login{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='login.css') }}">
+{% endblock %}
+
+{% block navbar %}{% endblock %}
+
+{% block content %}
+<form class="login-container" method="post" action="{{ url_for('login') }}">
+    <h2>Login</h2>
+    {{ form.hidden_tag() }}
+    <div>
+        {{ form.email.label }}
+        {{ form.email(class="form-control") }}
+        {% for error in form.email.errors %}
+            <span class="text-danger">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div>
+        {{ form.password.label }}
+        {{ form.password(class="form-control") }}
+        {% for error in form.password.errors %}
+            <span class="text-danger">{{ error }}</span>
+        {% endfor %}
+    </div>
+    <div class="form-check">
+        {{ form.remember(class="form-check-input") }}
+        {{ form.remember.label }}
+    </div>
+    <button type="submit">Login</button>
+</form>
+<style>
+</style>
+{% endblock %}

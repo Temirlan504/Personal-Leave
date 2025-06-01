@@ -11,16 +11,30 @@
     {% block styles %}{% endblock %}
 </head>
 <body>
+    {% block navbar %}
     <nav class="custom-navbar">
         <div class="navbar-left">
-            <a href="#" class="nav-title">Leave Manager</a>
+            <a href="{{ url_for('home') }}" class="nav-title">Leave Manager</a>
         </div>
         <div class="navbar-right">
             <a href="#" class="navbar-link">Profile</a>
             <a href="#" class="navbar-link">Sign Out</a>
         </div>
     </nav>
+    {% endblock %}
     <main>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="container mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                </div>
+            {% endfor %}
+            </div>
+        {% endif %}
+        {% endwith %}
+
         {% block content %}{% endblock %}
     </main>
 </body>
