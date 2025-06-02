@@ -9,8 +9,9 @@
 {% block content %}
 <!-- Main Content -->
 <div class="container mt-5" style="max-width: 1000px;">
-  <h2 class="greeting">{{ greeting }}, {{ users[0].first_name }}!</h2>
-
+    {% with user = current_user %}
+        <h2 class="greeting">{{ greeting }}, {{ user.first_name }}!</h2>
+    {% endwith %}
     <div class="row mt-4 justify-content-center gap-4">
         <!-- Vacation Card -->
         <div class="col-md-5">

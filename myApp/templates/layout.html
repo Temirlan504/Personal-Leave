@@ -17,8 +17,8 @@
             <a href="{{ url_for('home') }}" class="nav-title">Leave Manager</a>
         </div>
         <div class="navbar-right">
-            <a href="#" class="navbar-link">Profile</a>
-            <a href="#" class="navbar-link">Log Out</a>
+            <a href="{{ url_for('profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
+            <a href="{{ url_for('logout') }}" class="navbar-link">Log Out</a>
         </div>
     </nav>
     {% endblock %}
