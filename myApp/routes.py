@@ -5,21 +5,16 @@ from datetime import datetime
 from myApp.forms import AddUserForm, LoginForm
 from myApp.models import User
 from flask_login import login_required, login_user, logout_user, current_user
+from myApp.utils.email_utils import generate_unique_email
 
 # Define the homepage routes
 @app.route('/')
+@login_required
 def home():
-    if not current_user.is_authenticated:
-        return redirect(url_for('login'))
-    users = User.query.all()  # Fetch all users from the database
     greeting = get_greeting()  # e.g. "morning", "afternoon", etc.
     return render_template("homepage.html",
         greeting=greeting,
-        vacation_days_left=10,
-        vacation_days_total=14,
-        pel_days_left=2,
-        pel_days_total=5,
-        users=users
+        user=current_user
     )
 
 def get_greeting():
@@ -69,19 +64,22 @@ def profile(user_id):
     return render_template("profile_page.html", user=user)
 
 
-@app.route('/admin/add-user', methods=['GET', 'POST'])
+@app.route('/add-user', methods=['GET', 'POST'])
 def add_user():
+    if not current_user.is_authenticated or current_user.role != 'admin':
+        flash('You do not have permission to access this page.', 'danger')
+        return redirect(url_for('home'))
+    
     form = AddUserForm()
     if form.validate_on_submit():
         hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-        random_image = f"profile_pics/monster{random.randint(1, 3)}.png"
         user = User(
             first_name=form.first_name.data,
             last_name=form.last_name.data,
-            email=form.email.data,
-            phone=form.phone.data.strip() or None,  # Ensure phone is None if empty
+            email=generate_unique_email(form.first_name.data, form.last_name.data),
+            phone=form.phone.data.strip() if form.phone.data else None,  # Ensure phone is None if empty
             password=hashed_pw,
-            image_file=random_image
+            role=form.role.data
         )
         db.session.add(user)
         db.session.commit()
