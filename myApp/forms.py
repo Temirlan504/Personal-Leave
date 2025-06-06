@@ -16,3 +16,8 @@ class AddUserForm(FlaskForm):
     role = SelectField('Role', choices=[('admin', 'Admin'), ('employee', 'Employee'), ('hr', 'HR')], default='employee')
     submit = SubmitField('Add User')
     
+class EditProfileForm(FlaskForm):
+    first_name = StringField('First Name', validators=[DataRequired(), Length(max=40)])
+    last_name = StringField('Last Name', validators=[DataRequired(), Length(max=40)])
+    phone = StringField('Phone Number', validators=[Length(max=15)])
+    submit = SubmitField('Update Profile')

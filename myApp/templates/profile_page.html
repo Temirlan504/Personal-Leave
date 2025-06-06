@@ -5,20 +5,83 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='profile_page.css') }}">
 {% endblock %}
 
+{% block scripts %}
+    <script src="{{ url_for('static', filename='profile_page.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <div class="profile-container">
     <div class="profile-image">
         <img src="{{ url_for('static', filename=user.image_file) }}" alt="Profile Picture">
-        <div class="buttons">
-            <button class="edit-button">EDIT PROFILE</button>
-        </div>
     </div>
 
-    <div class="profile-info">
-        <p><strong>First Name:</strong> {{ user.first_name }}</p>
-        <p><strong>Last Name:</strong> {{ user.last_name }}</p>
+    <form method="POST" class="profile-info" id="profileForm">
+        {{ form.hidden_tag() }}
+
+        <p><strong>First Name:</strong> 
+            <span id="firstNameText">{{ user.first_name }}</span>
+            {{ form.first_name(class="form-control d-none", id="firstNameInput") }}
+        </p>
+
+        <p><strong>Last Name:</strong> 
+            <span id="lastNameText">{{ user.last_name }}</span>
+            {{ form.last_name(class="form-control d-none", id="lastNameInput") }}
+        </p>
+
+        {% if user.phone %}
+            <p><strong>Phone Number:</strong> 
+                <span id="phoneText">{{ user.phone }}</span>
+                {{ form.phone(class="form-control d-none", id="phoneInput") }}
+            </p>
+        {% else %}
+            <p><strong>Phone Number:</strong> 
+                <span id="phoneText">Not provided</span>
+                {{ form.phone(class="form-control d-none", id="phoneInput") }}
+            </p>
+        {% endif %}
+
         <p><strong>Email:</strong> {{ user.email }}</p>
-        <p><strong>Phone Number:</strong> {{ user.phone_number }}</p>
-    </div>
+
+        <div class="buttons">
+            <button type="button" class="edit-button" id="editButton">EDIT PROFILE</button>
+            <button type="submit" class="save-button d-none" id="saveButton">SAVE CHANGES</button>
+        </div>
+    </form>
+</div>
+
+<div class="requests-history-container">
+    <h3 style="margin-top: 3rem;">Leave History</h3>
+    <table class="table table-bordered table-hover">
+        <thead class="table-light">
+            <tr>
+                <th>Leave Type</th>
+                <th>From - To</th>
+                <th>Pay Requested</th>
+                <th>Date Submitted</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for req in dummy_requests %}
+            <tr>
+                <td>{{ req.type }}</td>
+                <td>{{ req.start_date }} - {{ req.end_date }}</td>
+                <td>{{ req.pay_requested }}</td>
+                <td>{{ req.date_submitted }}</td>
+                <td>
+                    {% if req.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">{{ req.status }}</span>
+                    {% elif req.status == 'approved' %}
+                        <span class="badge bg-success">{{ req.status }}</span>
+                    {% elif req.status == 'declined' %}
+                        <span class="badge bg-danger">{{ req.status }}</span>
+                    {% else %}
+                        {{ req.status }}
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endblock %}

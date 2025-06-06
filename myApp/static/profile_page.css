@@ -9,6 +9,7 @@
     border-radius: 16px;
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: large;
 }
 
 .profile-image {
@@ -19,8 +20,8 @@
 }
 
 .profile-image img {
-    width: 140px;
-    height: 140px;
+    width: 150px;
+    height: 150px;
     border-radius: 12px;
     object-fit: cover;
     border: 1px solid #f0f0f0;
@@ -29,10 +30,10 @@
 
 .buttons {
     display: flex;
-    justify-content: center;
+    justify-content: left;
 }
 
-.edit-button {
+.edit-button, .save-button {
     padding: 0.6rem 1.2rem;
     border: none;
     border-radius: 8px;
@@ -44,6 +45,88 @@
     transition: background-color 0.3s ease;
 }
 
-.edit-button:hover {
+.edit-button:hover, .save-button:hover {
     background-color: #3b4ed1;
+}
+
+.requests-history-container {
+    margin-bottom: 3rem;
+    background-color: #ffffff;
+    padding: 1rem 10rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.requests-history-container h3 {
+    font-size: 1.4rem;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.requests-history-container table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 1rem;
+}
+
+.requests-history-container th:nth-child(1), /* Leave Type */
+.requests-history-container td:nth-child(1) {
+    width: 15%;
+}
+
+.requests-history-container th:nth-child(2), /* From–To / Date */
+.requests-history-container td:nth-child(2) {
+    width: 30%;
+}
+
+.requests-history-container th:nth-child(3), /* Pay Requested */
+.requests-history-container td:nth-child(3) {
+    width: 15%;
+}
+
+.requests-history-container th:nth-child(4), /* Date Submitted */
+.requests-history-container td:nth-child(4) {
+    width: 25%;
+}
+
+.requests-history-container th:nth-child(5), /* Status */
+.requests-history-container td:nth-child(5) {
+    width: 15%;
+}
+
+.requests-history-container th,
+.requests-history-container td {
+    padding: 0.75rem 1rem;
+    text-align: center;
+    border: 1px solid #e0e0e0;
+}
+
+.requests-history-container thead {
+    background-color: #f9f9f9;
+}
+
+.requests-history-container tbody tr:hover {
+    background-color: #f3f7ff;
+}
+
+.badge {
+    padding: 0.4em 0.7em;
+    font-size: 0.85rem;
+    border-radius: 0.5rem;
+    display: inline-block;
+}
+
+.bg-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+.bg-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+.bg-warning {
+    background-color: #fff3cd;
+    color: #856404;
 }

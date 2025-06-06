@@ -2,7 +2,7 @@ import random
 from flask import render_template, flash, redirect, url_for
 from myApp import app, bcrypt, db
 from datetime import datetime
-from myApp.forms import AddUserForm, LoginForm
+from myApp.forms import AddUserForm, EditProfileForm, LoginForm
 from myApp.models import User
 from flask_login import login_required, login_user, logout_user, current_user
 from myApp.utils.email_utils import generate_unique_email
@@ -55,13 +55,60 @@ def logout():
 
 
 # Define profile page routes
-@app.route('/profile/<int:user_id>')
+@app.route('/profile/<int:user_id>', methods=['GET', 'POST'])
 @login_required
 def profile(user_id):
     user = User.query.get_or_404(user_id)
-    if current_user.id != user.id:
+    if current_user.id != user.id and current_user.role != 'admin':
+        flash('You do not have permission to view this profile.', 'danger')
         return redirect(url_for('home'))
-    return render_template("profile_page.html", user=user)
+    
+    form = EditProfileForm(obj=user)
+
+    if form.validate_on_submit():
+        user.first_name = form.first_name.data
+        user.last_name = form.last_name.data
+        user.phone = form.phone.data.strip() if form.phone.data else None
+        db.session.commit()
+        flash('Profile updated successfully!', 'success')
+        return redirect(url_for('profile', user_id=user.id))
+    
+    dummy_requests = [
+        {
+            "type": "Vacation",
+            "start_date": "May 1, 2023",
+            "end_date": "May 10, 2023",
+            "pay_requested": "Yes",
+            "date_submitted": "April 15, 2023",
+            "status": "approved"
+        },
+        {
+            "type": "PEL",
+            "start_date": "May 12, 2023",
+            "end_date": "May 16, 2023",
+            "pay_requested": "No",
+            "date_submitted": "April 15, 2023",
+            "status": "pending"
+        },
+        {
+            "type": "PEL",
+            "start_date": "May 21, 2023",
+            "end_date": "May 25, 2023",
+            "pay_requested": "Yes",
+            "date_submitted": "April 15, 2023",
+            "status": "approved"
+        },
+        {
+            "type": "Vacation",
+            "start_date": "May 26, 2023",
+            "end_date": "June 5, 2023",
+            "pay_requested": "Yes",
+            "date_submitted": "April 15, 2023",
+            "status": "declined"
+        }
+    ]
+
+    return render_template("profile_page.html", user=user, form=form, dummy_requests=dummy_requests)
 
 
 @app.route('/add-user', methods=['GET', 'POST'])
@@ -85,4 +132,6 @@ def add_user():
         db.session.commit()
         flash('User added successfully!', 'success')
         return redirect(url_for('add_user'))
-    return render_template('admin_add_user.html', form=form)
+    
+    users = User.query.all()
+    return render_template('admin_add_user.html', form=form, users=users)

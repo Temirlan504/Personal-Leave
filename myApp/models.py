@@ -1,3 +1,4 @@
+from datetime import datetime
 from myApp import db, login_manager
 from flask_login import UserMixin
 from myApp.utils.image_utils import get_random_image
@@ -21,5 +22,27 @@ class User(db.Model, UserMixin):
     paid_vacation_days = db.Column(db.Integer, default=0)  # Paid vacation days taken
     paid_pel_days = db.Column(db.Integer, default=0)  # Paid personal emergency leave days taken
 
+    vacation_requests = db.relationship('VacationRequest', backref='user', lazy=True)
+    pel_requests = db.relationship('PELRequest', backref='user', lazy=True)
+
+
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"
+
+
+class VacationRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    start_date = db.Column(db.Date, nullable=False)
+    end_date = db.Column(db.Date, nullable=False)
+    pay_requested = db.Column(db.Boolean, default=True)
+    date_submitted = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'declined'
+
+class PELRequest(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date = db.Column(db.Date, nullable=False)
+    pay_requested = db.Column(db.Boolean, default=True)
+    date_submitted = db.Column(db.DateTime, default=datetime.utcnow)
+    status = db.Column(db.String(20), default='pending')
