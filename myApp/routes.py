@@ -12,9 +12,11 @@ from myApp.utils.email_utils import generate_unique_email
 @login_required
 def home():
     greeting = get_greeting()  # e.g. "morning", "afternoon", etc.
+    users = User.query.all()  # Fetch all users from the database
     return render_template("homepage.html",
         greeting=greeting,
-        user=current_user
+        user=current_user,
+        users=users
     )
 
 def get_greeting():

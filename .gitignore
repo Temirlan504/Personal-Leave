@@ -30,4 +30,4 @@ instance/
 .pytest_cache/
 
 # Profile pictures
-static/profile_pics/
+myApp/static/profile_pics/
