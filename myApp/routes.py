@@ -1,11 +1,11 @@
-import random
+import secrets
 from flask import render_template, flash, redirect, url_for
 from myApp import app, bcrypt, db
-from datetime import datetime
-from myApp.forms import AddUserForm, EditProfileForm, LoginForm
-from myApp.models import User
+from myApp.forms import AddUserForm, LoginForm, RequestForm
+from myApp.models import User, PEL, Vacation
 from flask_login import login_required, login_user, logout_user, current_user
 from myApp.utils.email_utils import generate_unique_email
+from myApp.utils.greeting_utils import get_greeting
 
 # Define the homepage routes
 @app.route('/')
@@ -18,20 +18,6 @@ def home():
         user=current_user,
         users=users
     )
-
-def get_greeting():
-    try:
-        current_hour = datetime.now().hour
-        if 0 <= current_hour < 12:
-            return "Good morning"
-        elif 12 <= current_hour < 18:
-            return "Good afternoon"
-        elif 18 <= current_hour <= 23:
-            return "Good evening"
-        else:
-            return "Hello"  # Fallback for unexpected hour values
-    except Exception:
-        return "Hello"  # Fallback for any error (e.g. datetime failure)
     
 
 # Define the login routes
@@ -65,54 +51,18 @@ def profile(user_id):
         flash('You do not have permission to view this profile.', 'danger')
         return redirect(url_for('home'))
     
-    form = EditProfileForm(obj=user)
+    # Get actual PEL and Vacation requests from the DB
+    vacation_requests = Vacation.query.filter_by(user_id=user.id).all()
+    pel_requests = PEL.query.filter_by(user_id=user.id).all()
 
-    if form.validate_on_submit():
-        user.first_name = form.first_name.data
-        user.last_name = form.last_name.data
-        user.phone = form.phone.data.strip() if form.phone.data else None
-        db.session.commit()
-        flash('Profile updated successfully!', 'success')
-        return redirect(url_for('profile', user_id=user.id))
-    
-    dummy_requests = [
-        {
-            "type": "Vacation",
-            "start_date": "May 1, 2023",
-            "end_date": "May 10, 2023",
-            "pay_requested": "Yes",
-            "date_submitted": "April 15, 2023",
-            "status": "approved"
-        },
-        {
-            "type": "PEL",
-            "start_date": "May 12, 2023",
-            "end_date": "May 16, 2023",
-            "pay_requested": "No",
-            "date_submitted": "April 15, 2023",
-            "status": "pending"
-        },
-        {
-            "type": "PEL",
-            "start_date": "May 21, 2023",
-            "end_date": "May 25, 2023",
-            "pay_requested": "Yes",
-            "date_submitted": "April 15, 2023",
-            "status": "approved"
-        },
-        {
-            "type": "Vacation",
-            "start_date": "May 26, 2023",
-            "end_date": "June 5, 2023",
-            "pay_requested": "Yes",
-            "date_submitted": "April 15, 2023",
-            "status": "declined"
-        }
-    ]
+    # Combine and sort them by submission or start date (optional)
+    all_requests = vacation_requests + pel_requests
+    all_requests.sort(key=lambda r: r.start_date)
 
-    return render_template("profile_page.html", user=user, form=form, dummy_requests=dummy_requests)
+    return render_template("profile_page.html", user=user, all_requests=all_requests)
 
 
+# Admin routes for adding and managing users
 @app.route('/add-user', methods=['GET', 'POST'])
 def add_user():
     if not current_user.is_authenticated or current_user.role != 'admin':
@@ -121,14 +71,17 @@ def add_user():
     
     form = AddUserForm()
     if form.validate_on_submit():
-        hashed_pw = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        random_password = secrets.token_urlsafe(16)  # Generate a random password
+        hashed_pw = bcrypt.generate_password_hash(random_password).decode('utf-8')
         user = User(
             first_name=form.first_name.data,
             last_name=form.last_name.data,
             email=generate_unique_email(form.first_name.data, form.last_name.data),
             phone=form.phone.data.strip() if form.phone.data else None,  # Ensure phone is None if empty
             password=hashed_pw,
-            role=form.role.data
+            role=form.role.data,
+            date_joined=form.date_joined.data,
+            base_salary=form.base_salary.data if form.base_salary.data else 1.0  # Default to 1.0 if not provided
         )
         db.session.add(user)
         db.session.commit()
@@ -137,3 +90,39 @@ def add_user():
     
     users = User.query.all()
     return render_template('admin_add_user.html', form=form, users=users)
+
+
+# Define routes for vacation/pel requests
+@app.route('/pel-request', methods=['GET', 'POST'])
+@login_required
+def pel_request():
+    form = RequestForm()
+    if form.validate_on_submit():
+        pel = PEL(
+            user_id=current_user.id,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)  # Convert to boolean
+        )
+        db.session.add(pel)
+        db.session.commit()
+        flash('PEL request submitted.')
+        return redirect(url_for('profile'))
+    return render_template('pel_form.html', form=form)
+
+@app.route('/vacation-request', methods=['GET', 'POST'])
+@login_required
+def vacation_request():
+    form = RequestForm()
+    if form.validate_on_submit():
+        vacation = Vacation(
+            user_id=current_user.id,
+            start_date=form.start_date.data,
+            end_date=form.end_date.data,
+            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)  # Convert to boolean
+        )
+        db.session.add(vacation)
+        db.session.commit()
+        flash('Vacation request submitted.')
+        return redirect(url_for('profile'))
+    return render_template('vacation_form.html', form=form)

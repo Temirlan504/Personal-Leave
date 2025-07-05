@@ -1,0 +1,45 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h2>Vacation Request</h2>
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        <div class="mb-3">
+            <label class="form-label">Name:</label>
+            <p>{{ current_user.first_name }} {{ current_user.last_name }}</p>
+        </div>
+
+        <div class="mb-3">
+            {{ form.start_date.label(class="form-label") }}
+            {{ form.start_date(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.end_date.label(class="form-label") }}
+            {{ form.end_date(class="form-control") }}
+        </div>
+
+        <div class="mb-3">
+            {{ form.is_paid.label(class="form-label d-block") }}
+            {% for subfield in form.is_paid %}
+                <div class="form-check form-check-inline">
+                    {{ subfield(class="form-check-input") }}
+                    {{ subfield.label(class="form-check-label") }}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="mb-3 form-check">
+            {{ form.acknowledged(class="form-check-input") }}
+            {{ form.acknowledged.label(class="form-check-label") }}
+        </div>
+
+        {{ form.submit(class="btn btn-primary") }}
+
+        <p class="mt-3 text-muted">
+            <strong>Note:</strong> Vacation pay is accrued at 4% annually for employees with less than 5 years of service, and 6% for those with 5 or more years.
+        </p>
+    </form>
+</div>
+{% endblock %}

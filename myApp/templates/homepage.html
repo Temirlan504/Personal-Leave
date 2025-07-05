@@ -19,7 +19,7 @@
                         <h3 class="card-title">Vacations 🏖️</h3>
                         <h1>{{ current_user.vacation_days - current_user.paid_vacation_days }}/{{ current_user.vacation_days }}</h1>
                         <p class="text-muted">Days available</p>
-                        <a href="#" class="btn btn-primary mt-2">Request vacation</a>
+                        <a href="{{ url_for('vacation_form') }}" class="btn btn-primary mt-2">Request vacation</a>
                     </div>
                 </div>
             </div>
@@ -30,7 +30,7 @@
                         <h3 class="card-title">Personal Leave 🏥</h3>
                         <h1>{{ current_user.pel_days - current_user.paid_pel_days }}/{{ current_user.pel_days }}</h1>
                         <p class="text-muted">Days available</p>
-                        <a href="#" class="btn btn-primary mt-2">Request personal leave</a>
+                        <a href="{{ url_for('pel_form') }}" class="btn btn-primary mt-2">Request personal leave</a>
                     </div>
                 </div>
             </div>
@@ -48,6 +48,8 @@
                     <th>Email</th>
                     <th>Phone</th>
                     <th>Role</th>
+                    <th>Base Salary</th>
+                    <th>Date Joined</th>
                 </tr>
             </thead>
             <tbody>
@@ -62,6 +64,8 @@
                     <td>{{ user.email }}</td>
                     <td>{{ user.phone or '—' }}</td>
                     <td>{{ user.role }}</td>
+                    <td>${{ user.base_salary }}</td>
+                    <td>{{ user.date_joined.strftime('%Y-%m-%d') }}</td>
                 </tr>
                 {% endfor %}
             </tbody>

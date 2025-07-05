@@ -27,26 +27,20 @@
     border: 1px solid #f0f0f0;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-
-.buttons {
+.profile-details {
+    flex: 1;
     display: flex;
-    justify-content: left;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
-.edit-button, .save-button {
-    padding: 0.6rem 1.2rem;
-    border: none;
-    border-radius: 8px;
-    background-color: #4e63f7;
-    color: #fff;
-    font-size: 0.95rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
+.profile-details p {
+    margin: 0;
+    color: #555;
 }
 
-.edit-button:hover, .save-button:hover {
-    background-color: #3b4ed1;
+.profile-details strong {
+    color: #333;
 }
 
 .requests-history-container {

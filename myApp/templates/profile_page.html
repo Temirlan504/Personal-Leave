@@ -15,38 +15,25 @@
         <img src="{{ url_for('static', filename=user.image_file) }}" alt="Profile Picture">
     </div>
 
-    <form method="POST" class="profile-info" id="profileForm">
-        {{ form.hidden_tag() }}
-
+    <div class="profile-details">
         <p><strong>First Name:</strong> 
             <span id="firstNameText">{{ user.first_name }}</span>
-            {{ form.first_name(class="form-control d-none", id="firstNameInput") }}
         </p>
-
         <p><strong>Last Name:</strong> 
             <span id="lastNameText">{{ user.last_name }}</span>
-            {{ form.last_name(class="form-control d-none", id="lastNameInput") }}
         </p>
-
         {% if user.phone %}
             <p><strong>Phone Number:</strong> 
                 <span id="phoneText">{{ user.phone }}</span>
-                {{ form.phone(class="form-control d-none", id="phoneInput") }}
             </p>
         {% else %}
             <p><strong>Phone Number:</strong> 
                 <span id="phoneText">Not provided</span>
-                {{ form.phone(class="form-control d-none", id="phoneInput") }}
             </p>
         {% endif %}
-
         <p><strong>Email:</strong> {{ user.email }}</p>
-
-        <div class="buttons">
-            <button type="button" class="edit-button" id="editButton">EDIT PROFILE</button>
-            <button type="submit" class="save-button d-none" id="saveButton">SAVE CHANGES</button>
-        </div>
-    </form>
+        <p><strong>Date Joined:</strong> September 1, 2024</p>
+    </div>
 </div>
 
 <div class="requests-history-container">
@@ -62,25 +49,31 @@
             </tr>
         </thead>
         <tbody>
-            {% for req in dummy_requests %}
+            {% for req in all_requests %}
             <tr>
                 <td>{{ req.type }}</td>
-                <td>{{ req.start_date }} - {{ req.end_date }}</td>
-                <td>{{ req.pay_requested }}</td>
-                <td>{{ req.date_submitted }}</td>
+                <td>{{ req.start_date.strftime('%b %d, %Y') }} - {{ req.end_date.strftime('%b %d, %Y') }}</td>
+                <td>{{ 'Yes' if req.is_paid else 'No' }}</td>
+                <td>{{ req.start_date.strftime('%b %d, %Y') }}</td>  {# Using start_date as proxy for submission date #}
                 <td>
-                    {% if req.status == 'pending' %}
-                        <span class="badge bg-warning text-dark">{{ req.status }}</span>
-                    {% elif req.status == 'approved' %}
-                        <span class="badge bg-success">{{ req.status }}</span>
-                    {% elif req.status == 'declined' %}
-                        <span class="badge bg-danger">{{ req.status }}</span>
+                    {% set status = 'pending' %}  {# Default until you add real status field #}
+                    {% if status == 'pending' %}
+                        <span class="badge bg-warning text-dark">{{ status }}</span>
+                    {% elif status == 'approved' %}
+                        <span class="badge bg-success">{{ status }}</span>
+                    {% elif status == 'declined' %}
+                        <span class="badge bg-danger">{{ status }}</span>
                     {% else %}
-                        {{ req.status }}
+                        {{ status }}
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
+            {% if not all_requests %}
+            <tr>
+                <td colspan="5" class="text-center">No leave requests found.</td>
+            </tr>
+            {% endif %}
         </tbody>
     </table>
 </div>
