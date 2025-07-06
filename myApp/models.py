@@ -1,7 +1,8 @@
 from datetime import datetime
-from myApp import db, login_manager
+from myApp import db, login_manager, app
 from flask_login import UserMixin
 from myApp.utils.image_utils import get_random_image
+from itsdangerous import URLSafeTimedSerializer as Serializer
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -25,6 +26,19 @@ class User(db.Model, UserMixin):
     paid_pel_days = db.Column(db.Integer, default=0)  # Paid personal emergency leave days taken
     pel_requests = db.relationship('PEL', backref='user', lazy=True)
     vacation_requests = db.relationship('Vacation', backref='user', lazy=True)
+
+    def get_reset_token(self, expires_sec=1800):
+        s = Serializer(app.config['SECRET_KEY'])
+        return s.dumps({'user_id': self.id})
+    
+    @staticmethod
+    def verify_reset_token(token):
+        s = Serializer(app.config['SECRET_KEY'])
+        try:
+            user_id = s.loads(token)['user_id']
+        except Exception:
+            return None
+        return User.query.get(user_id)
 
     def __repr__(self):
         return f"User('{self.email}', '{self.role}')"

@@ -1,11 +1,15 @@
 import secrets
 from flask import render_template, flash, redirect, url_for
-from myApp import app, bcrypt, db
-from myApp.forms import AddUserForm, LoginForm, RequestForm
+from myApp import app, bcrypt, db, mail
+from myApp.forms import (
+    AddUserForm, LoginForm, RequestForm,
+    RequestResetForm, ResetPasswordForm
+)
 from myApp.models import User, PEL, Vacation
 from flask_login import login_required, login_user, logout_user, current_user
 from myApp.utils.email_utils import generate_unique_email
 from myApp.utils.greeting_utils import get_greeting
+from myApp.utils.send_reset_email import send_reset_email
 
 # Define the homepage routes
 @app.route('/')
@@ -40,6 +44,35 @@ def logout():
     if current_user.is_authenticated:
         logout_user()
     return redirect(url_for('login'))
+
+@app.route('/reset_password', methods=['GET', 'POST'])
+def reset_request():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    form = RequestResetForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(email=form.email.data).first()
+        send_reset_email(user)
+        flash('An email has been sent with instructions to reset your password.', 'info')
+        return redirect(url_for('login'))
+    return render_template("reset_request.html", form=form)
+
+@app.route('/reset_password/<token>', methods=['GET', 'POST'])
+def reset_token(token):
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    user = User.verify_reset_token(token)
+    if user is None:
+        flash('That is an invalid or expired token', 'warning')
+        return redirect(url_for('reset_request'))
+    form = ResetPasswordForm()
+    if form.validate_on_submit():
+        hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
+        user.password = hashed_password
+        db.session.commit()
+        flash('Your password has been updated! You can now log in.', 'success')
+        return redirect(url_for('login'))
+    return render_template("reset_token.html", form=form)
 
 
 # Define profile page routes
@@ -93,7 +126,7 @@ def add_user():
 
 
 # Define routes for vacation/pel requests
-@app.route('/pel-request', methods=['GET', 'POST'])
+@app.route('/pel_request', methods=['GET', 'POST'])
 @login_required
 def pel_request():
     form = RequestForm()
@@ -110,7 +143,7 @@ def pel_request():
         return redirect(url_for('profile'))
     return render_template('pel_form.html', form=form)
 
-@app.route('/vacation-request', methods=['GET', 'POST'])
+@app.route('/vacation_request', methods=['GET', 'POST'])
 @login_required
 def vacation_request():
     form = RequestForm()

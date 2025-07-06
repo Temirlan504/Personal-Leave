@@ -9,17 +9,14 @@
             <label class="form-label">Name:</label>
             <p>{{ current_user.first_name }} {{ current_user.last_name }}</p>
         </div>
-
         <div class="mb-3">
             {{ form.start_date.label(class="form-label") }}
             {{ form.start_date(class="form-control") }}
         </div>
-
         <div class="mb-3">
             {{ form.end_date.label(class="form-label") }}
             {{ form.end_date(class="form-control") }}
         </div>
-
         <div class="mb-3">
             {{ form.is_paid.label(class="form-label d-block") }}
             {% for subfield in form.is_paid %}
@@ -28,11 +25,6 @@
                     {{ subfield.label(class="form-check-label") }}
                 </div>
             {% endfor %}
-        </div>
-
-        <div class="mb-3 form-check">
-            {{ form.acknowledged(class="form-check-input") }}
-            {{ form.acknowledged.label(class="form-check-label") }}
         </div>
 
         {{ form.submit(class="btn btn-primary") }}
