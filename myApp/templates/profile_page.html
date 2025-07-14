@@ -33,6 +33,8 @@
         {% endif %}
         <p><strong>Email:</strong> {{ user.email }}</p>
         <p><strong>Date Joined:</strong> September 1, 2024</p>
+        <p><strong>Role:</strong> {{ user.role }}</p>
+        <p><strong>Base Salary:</strong> ${{ user.base_salary }}</p>
     </div>
 </div>
 
@@ -49,32 +51,42 @@
             </tr>
         </thead>
         <tbody>
-            {% for req in all_requests %}
+            {% for req in paginated_requests %}
             <tr>
                 <td>{{ req.type }}</td>
                 <td>{{ req.start_date.strftime('%b %d, %Y') }} - {{ req.end_date.strftime('%b %d, %Y') }}</td>
                 <td>{{ 'Yes' if req.is_paid else 'No' }}</td>
-                <td>{{ req.start_date.strftime('%b %d, %Y') }}</td>  {# Using start_date as proxy for submission date #}
+                <td>{{ req.start_date.strftime('%b %d, %Y') }}</td>  {# Assuming submission = start_date #}
                 <td>
-                    {% set status = 'pending' %}  {# Default until you add real status field #}
-                    {% if status == 'pending' %}
-                        <span class="badge bg-warning text-dark">{{ status }}</span>
-                    {% elif status == 'approved' %}
-                        <span class="badge bg-success">{{ status }}</span>
-                    {% elif status == 'declined' %}
-                        <span class="badge bg-danger">{{ status }}</span>
+                    {% if req.status == 'pending' %}
+                        <span class="badge bg-warning text-dark">{{ req.status }}</span>
+                    {% elif req.status == 'approved' %}
+                        <span class="badge bg-success">{{ req.status }}</span>
+                    {% elif req.status == 'declined' %}
+                        <span class="badge bg-danger">{{ req.status }}</span>
                     {% else %}
-                        {{ status }}
+                        {{ req.status }}
                     {% endif %}
                 </td>
             </tr>
             {% endfor %}
-            {% if not all_requests %}
+            {% if not paginated_requests %}
             <tr>
                 <td colspan="5" class="text-center">No leave requests found.</td>
             </tr>
             {% endif %}
         </tbody>
     </table>
+
+    {% if paginated_requests.has_prev or paginated_requests.has_next %}
+        <div class="pagination">
+            {% if paginated_requests.has_prev %}
+                <a href="{{ url_for('profile', user_id=user.id, page=paginated_requests.prev_num) }}" class="btn btn-secondary">Previous</a>
+            {% endif %}
+            {% if paginated_requests.has_next %}
+                <a href="{{ url_for('profile', user_id=user.id, page=paginated_requests.next_num) }}" class="btn btn-secondary">Next</a>
+            {% endif %}
+        </div>
+    {% endif %}
 </div>
 {% endblock %}

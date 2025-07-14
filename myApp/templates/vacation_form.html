@@ -1,6 +1,10 @@
 {% extends "layout.html" %}
+{% block title %}Vacation Request{% endblock %}
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='request_form_page.css') }}">
+{% endblock %}
 {% block content %}
-<div class="container mt-5">
+<div class="request-container mt-5">
     <h2>Vacation Request</h2>
     <form method="POST">
         {{ form.hidden_tag() }}
@@ -11,11 +15,11 @@
         </div>
         <div class="mb-3">
             {{ form.start_date.label(class="form-label") }}
-            {{ form.start_date(class="form-control") }}
+            {{ form.start_date(class="form-control", min=date.today().isoformat()) }}
         </div>
         <div class="mb-3">
             {{ form.end_date.label(class="form-label") }}
-            {{ form.end_date(class="form-control") }}
+            {{ form.end_date(class="form-control", min=date.today().isoformat()) }}
         </div>
         <div class="mb-3">
             {{ form.is_paid.label(class="form-label d-block") }}

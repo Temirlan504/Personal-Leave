@@ -1,5 +1,5 @@
 import secrets
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, request
 from myApp import app, bcrypt, db, mail
 from myApp.forms import (
     AddUserForm, LoginForm, RequestForm,
@@ -7,20 +7,48 @@ from myApp.forms import (
 )
 from myApp.models import User, PEL, Vacation
 from flask_login import login_required, login_user, logout_user, current_user
+from myApp.utils.convert_dollars import convert_dollars_to_days_hours
 from myApp.utils.email_utils import generate_unique_email
 from myApp.utils.greeting_utils import get_greeting
 from myApp.utils.send_reset_email import send_reset_email
+from datetime import date
 
 # Define the homepage routes
+from flask import request
+
 @app.route('/')
 @login_required
 def home():
-    greeting = get_greeting()  # e.g. "morning", "afternoon", etc.
-    users = User.query.all()  # Fetch all users from the database
+    greeting = get_greeting()
+    
+    if current_user.role in ['admin', 'hr']:
+        page = request.args.get('page', 1, type=int)
+        vacation_requests = Vacation.query.all()
+        pel_requests = PEL.query.all()
+        all_requests = vacation_requests + pel_requests
+        all_requests.sort(key=lambda r: r.start_date, reverse=True)
+
+        # ✅ Slice the list manually for pagination
+        per_page = 10
+        start = (page - 1) * per_page
+        end = start + per_page
+        paginated_requests = all_requests[start:end]
+
+        return render_template("homepage.html",
+            greeting=greeting,
+            user=current_user,
+            all_requests=paginated_requests,
+            page=page
+        )
+
+    # For normal users
+    vacation_requests = Vacation.query.filter_by(user_id=current_user.id).all()
+    pel_requests = PEL.query.filter_by(user_id=current_user.id).all()
     return render_template("homepage.html",
         greeting=greeting,
         user=current_user,
-        users=users
+        vacation_requests=vacation_requests,
+        pel_requests=pel_requests
     )
     
 
@@ -92,7 +120,17 @@ def profile(user_id):
     all_requests = vacation_requests + pel_requests
     all_requests.sort(key=lambda r: r.start_date)
 
-    return render_template("profile_page.html", user=user, all_requests=all_requests)
+    # Pagination logic
+    page = request.args.get('page', 1, type=int)
+    per_page = 5  # Number of requests per page
+    total = len(all_requests)
+    paginated_requests = all_requests[(page - 1) * per_page: page * per_page]
+
+    return render_template(
+        "profile_page.html", user=user, all_requests=all_requests,
+        paginated_requests=paginated_requests, total=total,
+        page=page, per_page=per_page
+    )
 
 
 # Admin routes for adding and managing users
@@ -130,32 +168,85 @@ def add_user():
 @login_required
 def pel_request():
     form = RequestForm()
+    pending_pel = PEL.query.filter_by(user_id=current_user.id).filter(PEL.status == 'pending').first()
+    if pending_pel:
+        flash("You already have a pending PEL request. Please wait for it to be processed.", "warning")
+        return redirect(url_for('profile', user_id=current_user.id))
+    
     if form.validate_on_submit():
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        is_paid = form.is_paid.data
+        requested_days = (end_date - start_date).days + 1
+
+        # Check limits using method in User model
+        allowed, message = current_user.can_take_pel(is_paid, requested_days)
+        if not allowed:
+            flash(message, 'danger')
+            return redirect(url_for('pel_request'))
+        elif message:
+            flash(message, 'info')  # This means allowed == True but there's an FYI
+        
         pel = PEL(
             user_id=current_user.id,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)  # Convert to boolean
+            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)
         )
         db.session.add(pel)
         db.session.commit()
         flash('PEL request submitted.')
-        return redirect(url_for('profile'))
-    return render_template('pel_form.html', form=form)
+        return redirect(url_for('profile', user_id=current_user.id))
+    return render_template('pel_form.html', form=form, date=date)
 
 @app.route('/vacation_request', methods=['GET', 'POST'])
 @login_required
 def vacation_request():
     form = RequestForm()
+    # Check for existing pending Vacation request
+    pending_vacation = Vacation.query.filter_by(user_id=current_user.id).filter(Vacation.status == 'pending').first()
+    if pending_vacation:
+        flash("You already have a pending vacation request. Please wait for it to be processed.", "warning")
+        return redirect(url_for('profile', user_id=current_user.id))
+    
     if form.validate_on_submit():
+        start_date = form.start_date.data
+        end_date = form.end_date.data
+        is_paid = form.is_paid.data
+        requested_days = (end_date - start_date).days + 1
+        available_days = current_user.get_available_vacation_days()
+
+        # Check for reverse or negative dates
+        if start_date > end_date:
+            flash("Start date cannot be after end date.", "danger")
+            return redirect(url_for('vacation_request'))
+
+        if is_paid and requested_days > available_days:
+            flash(f"You only have {available_days} paid vacation days left.", "danger")
+            return redirect(url_for('vacation_request'))
+
+        # For info: how much would they get paid
+        if is_paid:
+            accrued_dollars = current_user.get_total_vacation_accrued_dollars()
+            daily_pay = current_user.base_salary / 260
+            requested_cost = requested_days * daily_pay
+
+            if requested_cost > accrued_dollars:
+                flash(f"⚠ You'll only be paid for up to ${accrued_dollars:.2f} "
+                      f"(approx. {convert_dollars_to_days_hours(current_user, accrued_dollars)[0]}d "
+                      f"{convert_dollars_to_days_hours(current_user, accrued_dollars)[1]}h).", "info")
+            else:
+                flash(f"You will be paid ${requested_cost:.2f} "
+                      f"(approx. {requested_days} days).", "info")
+                
         vacation = Vacation(
             user_id=current_user.id,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)  # Convert to boolean
+            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)
         )
         db.session.add(vacation)
         db.session.commit()
         flash('Vacation request submitted.')
-        return redirect(url_for('profile'))
-    return render_template('vacation_form.html', form=form)
+        return redirect(url_for('profile', user_id=current_user.id))
+    return render_template('vacation_form.html', form=form, date=date)
