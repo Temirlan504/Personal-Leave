@@ -9,6 +9,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 class User(db.Model, UserMixin):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     first_name = db.Column(db.String(40), nullable=False)
     last_name = db.Column(db.String(40), nullable=False)
@@ -109,6 +110,12 @@ class PEL(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')  # 'pending', 'approved', 'declined'
     type = db.Column(db.String(20), default='PEL')  # used for displaying leave type
+    admin_approved = db.Column(db.Boolean, default=False)
+    hr_approved = db.Column(db.Boolean, default=False)
+
+    @property
+    def is_fully_approved(self):
+        return self.admin_approved and self.hr_approved
 
     def __repr__(self):
         return f"PEL('{self.user.email}', '{self.start_date}', '{self.end_date}', '{self.is_paid}')"
@@ -124,6 +131,13 @@ class Vacation(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     status = db.Column(db.String(20), default='pending')
     type = db.Column(db.String(20), default='Vacation')
+    admin_approved = db.Column(db.Boolean, default=False)
+    hr_approved = db.Column(db.Boolean, default=False)
+
+    @property
+    def is_fully_approved(self):
+        return self.admin_approved and self.hr_approved
+
 
     def __repr__(self):
         return f"Vacation('{self.user.email}', '{self.start_date}', '{self.end_date}', '{self.is_paid}')"

@@ -1,5 +1,5 @@
 import secrets
-from flask import render_template, flash, redirect, url_for, request
+from flask import abort, render_template, flash, redirect, url_for, request
 from myApp import app, bcrypt, db, mail
 from myApp.forms import (
     AddUserForm, LoginForm, RequestForm,
@@ -13,9 +13,6 @@ from myApp.utils.greeting_utils import get_greeting
 from myApp.utils.send_reset_email import send_reset_email
 from datetime import date
 
-# Define the homepage routes
-from flask import request
-
 @app.route('/')
 @login_required
 def home():
@@ -25,8 +22,12 @@ def home():
         page = request.args.get('page', 1, type=int)
         vacation_requests = Vacation.query.all()
         pel_requests = PEL.query.all()
+        for p in pel_requests:
+            p.type = 'pel'
+        for v in vacation_requests:
+            v.type = 'vacation'
         all_requests = vacation_requests + pel_requests
-        all_requests.sort(key=lambda r: r.start_date, reverse=True)
+        all_requests.sort(key=lambda r: r.created_at, reverse=True)
 
         # ✅ Slice the list manually for pagination
         per_page = 10
@@ -133,7 +134,7 @@ def profile(user_id):
     )
 
 
-# Admin routes for adding and managing users
+# Admin routes
 @app.route('/add-user', methods=['GET', 'POST'])
 def add_user():
     if not current_user.is_authenticated or current_user.role != 'admin':
@@ -250,3 +251,28 @@ def vacation_request():
         flash('Vacation request submitted.')
         return redirect(url_for('profile', user_id=current_user.id))
     return render_template('vacation_form.html', form=form, date=date)
+
+@app.route('/request_detail/<string:request_type>/<int:request_id>', methods=['GET', 'POST'])
+@login_required
+def request_detail(request_type, request_id):
+    request_obj = PEL.query.get(request_id) if request_type == 'pel' else Vacation.query.get(request_id)
+    if not request_obj:
+        flash("Request not found.", "danger")
+        return redirect(url_for('home'))
+    if request.method == "POST":
+        action = request.form.get("action")
+        if action == "approve_admin" and current_user.role == "admin":
+            request_obj.admin_approved = True
+        elif action == "approve_hr" and current_user.role == "hr":
+            request_obj.hr_approved = True
+        elif action == "decline":
+            request_obj.status = "declined"
+
+        # Final approval
+        if request_obj.admin_approved and request_obj.hr_approved:
+            request_obj.status = "approved"
+
+        db.session.commit()
+        return redirect(url_for("request_detail", request_type=request_type, request_id=request_id))
+
+    return render_template('request_detail.html', req=request_obj)

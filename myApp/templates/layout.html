@@ -25,6 +25,8 @@
             {% if current_user.role == 'admin' %}
                 <a href="{{ url_for('add_user') }}" class="navbar-link">Add User</a>
             {% endif %}
+            <a href="{{ url_for('vacation_request') }}" class="navbar-link">Vacation Request</a>
+            <a href="{{ url_for('pel_request') }}" class="navbar-link">Personal Leave Request</a>
             <a href="{{ url_for('profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
             <a href="{{ url_for('logout') }}" class="navbar-link">Log Out</a>
         </div>

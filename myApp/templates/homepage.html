@@ -6,6 +6,10 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='homepage.css') }}">
 {% endblock %}
 
+{% block scripts %}
+    <script src="{{ url_for('static', filename='homepage.js') }}"></script>
+{% endblock %}
+
 {% block content %}
 <!-- Main Content -->
 <div class="container mt-5" style="max-width: 1000px;">
@@ -36,6 +40,7 @@
             </div>
         </div>
 
+    <!-- Admin/HR View -->
     {% elif current_user.role == 'admin' or current_user.role == 'hr' %}
         <div class="container mt-5">
         <h2 class="mb-4">All Requests</h2>
@@ -52,26 +57,28 @@
                 </tr>
             </thead>
             <tbody>
-                {% for request in all_requests %}
-                <tr>
-                    <td>{{ loop.index }}</td>
-                    <td>{{ request.user.first_name }} {{ request.user.last_name }}</td>
-                    <td>{{ request.type }}</td>
-                    <td>{{ request.start_date.strftime('%b %d, %Y') }} – {{ request.end_date.strftime('%b %d, %Y') }}</td>
-                    <td>{{ 'Yes' if request.is_paid else 'No' }}</td>
-                    <td>{{ request.created_at.strftime('%b %d, %Y') }}</td>
-                    <td>
-                        {% if request.status == 'pending' %}
-                            <span class="badge bg-warning text-dark">{{ request.status }}</span>
-                        {% elif request.status == 'approved' %}
-                            <span class="badge bg-success">{{ request.status }}</span>
-                        {% elif request.status == 'declined' %}
-                            <span class="badge bg-danger">{{ request.status }}</span>
-                        {% else %}
-                            {{ request.status }}
-                        {% endif %}
-                    </td>
-                </tr>
+                {% for req in all_requests %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ req.user.first_name }} {{ req.user.last_name }}</td>
+                        <td>
+                            <a href="{{ url_for('request_detail', request_type=req.type, request_id=req.id) }}">{{ req.type }}</a>
+                        </td>
+                        <td>{{ req.start_date.strftime('%b %d, %Y') }} – {{ req.end_date.strftime('%b %d, %Y') }}</td>
+                        <td>{{ 'Yes' if req.is_paid else 'No' }}</td>
+                        <td>{{ req.created_at.strftime('%b %d, %Y') }}</td>
+                        <td>
+                            {% if req.status == 'pending' %}
+                                <span class="badge bg-warning text-dark">{{ req.status }}</span>
+                            {% elif req.status == 'approved' %}
+                                <span class="badge bg-success">{{ req.status }}</span>
+                            {% elif req.status == 'declined' %}
+                                <span class="badge bg-danger">{{ req.status }}</span>
+                            {% else %}
+                                {{ req.status }}
+                            {% endif %}
+                        </td>
+                    </tr>
                 {% endfor %}
             </tbody>
         </table>
@@ -79,17 +86,16 @@
         <nav aria-label="Request pagination">
             <ul class="pagination justify-content-center mt-4">
                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('home', page=page-1) }}" tabindex="-1">Previous</a>
+                    <a class="page-link" href="{{ url_for('home', page=page-1) }}" tabindex="-1">Previous</a>
                 </li>
                 <li class="page-item"><span class="page-link">Page {{ page }}</span></li>
                 <li class="page-item {% if all_requests|length < 10 %}disabled{% endif %}">
-                <a class="page-link" href="{{ url_for('home', page=page+1) }}">Next</a>
+                    <a class="page-link" href="{{ url_for('home', page=page+1) }}">Next</a>
                 </li>
             </ul>
         </nav>
 
     </div>
     {% endif %}
-</div>
 </div>
 {% endblock %}
