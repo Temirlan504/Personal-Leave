@@ -1,12 +1,16 @@
 from datetime import datetime, date
-from myApp import db, login_manager, app
+from myApp import db, login_manager
 from flask_login import UserMixin
-from myApp.utils.image_utils import get_random_image
+import random
 from itsdangerous import URLSafeTimedSerializer as Serializer
+from flask import current_app as app
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
+
+def get_random_image():
+    return f"profile_pics/monster{random.randint(1, 10)}.png"
 
 class User(db.Model, UserMixin):
     __tablename__ = 'user'

@@ -81,10 +81,10 @@
     {% if paginated_requests.has_prev or paginated_requests.has_next %}
         <div class="pagination">
             {% if paginated_requests.has_prev %}
-                <a href="{{ url_for('profile', user_id=user.id, page=paginated_requests.prev_num) }}" class="btn btn-secondary">Previous</a>
+                <a href="{{ url_for('users.profile', user_id=user.id, page=paginated_requests.prev_num) }}" class="btn btn-secondary">Previous</a>
             {% endif %}
             {% if paginated_requests.has_next %}
-                <a href="{{ url_for('profile', user_id=user.id, page=paginated_requests.next_num) }}" class="btn btn-secondary">Next</a>
+                <a href="{{ url_for('users.profile', user_id=user.id, page=paginated_requests.next_num) }}" class="btn btn-secondary">Next</a>
             {% endif %}
         </div>
     {% endif %}

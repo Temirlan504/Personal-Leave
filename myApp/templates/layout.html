@@ -19,16 +19,16 @@
     {% block navbar %}
     <nav class="custom-navbar">
         <div class="navbar-left">
-            <a href="{{ url_for('home') }}" class="nav-title">Leave Manager</a>
+            <a href="{{ url_for('main.home') }}" class="nav-title">Leave Manager</a>
         </div>
         <div class="navbar-right">
-            {% if current_user.role == 'admin' %}
-                <a href="{{ url_for('add_user') }}" class="navbar-link">Add User</a>
+            {% if current_user.role == 'admin' or current_user.role == 'hr' %}
+                <a href="{{ url_for('admin.add_user') }}" class="navbar-link">Add User</a>
+                <a href="{{ url_for('requests.vacation_request') }}" class="navbar-link">Vacation Request</a>
+                <a href="{{ url_for('requests.pel_request') }}" class="navbar-link">Personal Leave Request</a>
             {% endif %}
-            <a href="{{ url_for('vacation_request') }}" class="navbar-link">Vacation Request</a>
-            <a href="{{ url_for('pel_request') }}" class="navbar-link">Personal Leave Request</a>
-            <a href="{{ url_for('profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
-            <a href="{{ url_for('logout') }}" class="navbar-link">Log Out</a>
+            <a href="{{ url_for('users.profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
+            <a href="{{ url_for('users.logout') }}" class="navbar-link">Log Out</a>
         </div>
     </nav>
     {% endblock %}

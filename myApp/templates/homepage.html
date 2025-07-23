@@ -23,7 +23,7 @@
                         <h3 class="card-title">Vacations 🏖️</h3>
                         <h1>{{ current_user.vacation_days - (current_user.paid_vacation_days_taken or 0) }}/{{ current_user.vacation_days }}</h1>
                         <p class="text-muted">Days available</p>
-                        <a href="{{ url_for('vacation_request') }}" class="btn btn-primary mt-2">Request vacation</a>
+                        <a href="{{ url_for('requests.vacation_request') }}" class="btn btn-primary mt-2">Request vacation</a>
                     </div>
                 </div>
             </div>
@@ -34,7 +34,7 @@
                         <h3 class="card-title">Personal Leave 🏥</h3>
                         <h1>{{ current_user.pel_days - (current_user.paid_pel_days_taken or 0) }}/{{ current_user.pel_days }}</h1>
                         <p class="text-muted">Days available</p>
-                        <a href="{{ url_for('pel_request') }}" class="btn btn-primary mt-2">Request personal leave</a>
+                        <a href="{{ url_for('requests.pel_request') }}" class="btn btn-primary mt-2">Request personal leave</a>
                     </div>
                 </div>
             </div>
@@ -62,7 +62,7 @@
                         <td>{{ loop.index }}</td>
                         <td>{{ req.user.first_name }} {{ req.user.last_name }}</td>
                         <td>
-                            <a href="{{ url_for('request_detail', request_type=req.type, request_id=req.id) }}">{{ req.type }}</a>
+                            <a href="{{ url_for('requests.request_detail', request_type=req.type, request_id=req.id) }}">{{ req.type }}</a>
                         </td>
                         <td>{{ req.start_date.strftime('%b %d, %Y') }} – {{ req.end_date.strftime('%b %d, %Y') }}</td>
                         <td>{{ 'Yes' if req.is_paid else 'No' }}</td>
@@ -86,11 +86,11 @@
         <nav aria-label="Request pagination">
             <ul class="pagination justify-content-center mt-4">
                 <li class="page-item {% if page <= 1 %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('home', page=page-1) }}" tabindex="-1">Previous</a>
+                    <a class="page-link" href="{{ url_for('main.home', page=page-1) }}" tabindex="-1">Previous</a>
                 </li>
                 <li class="page-item"><span class="page-link">Page {{ page }}</span></li>
                 <li class="page-item {% if all_requests|length < 10 %}disabled{% endif %}">
-                    <a class="page-link" href="{{ url_for('home', page=page+1) }}">Next</a>
+                    <a class="page-link" href="{{ url_for('main.home', page=page+1) }}">Next</a>
                 </li>
             </ul>
         </nav>
