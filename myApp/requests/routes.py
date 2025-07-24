@@ -6,6 +6,7 @@ from myApp import db
 from myApp.requests.forms import RequestForm
 from myApp.models import Vacation, PEL
 from myApp.requests.utils import convert_dollars_to_days_hours
+from functools import wraps
 
 requests_bp = Blueprint('requests', __name__)
 
@@ -97,8 +98,18 @@ def vacation_request():
         return redirect(url_for('users.profile', user_id=current_user.id))
     return render_template('vacation_form.html', form=form, date=date)
 
+def admin_or_hr_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if current_user.role not in ['admin', 'hr']:
+            flash("You do not have permission to access this page.", "danger")
+            return redirect(url_for('main.home'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 @requests_bp.route('/request_detail/<string:request_type>/<int:request_id>', methods=['GET', 'POST'])
 @login_required
+@admin_or_hr_required
 def request_detail(request_type, request_id):
     request_obj = PEL.query.get(request_id) if request_type == 'pel' else Vacation.query.get(request_id)
     if not request_obj:

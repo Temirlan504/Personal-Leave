@@ -29,10 +29,12 @@ def create_app(config_class=Config):
         from myApp.requests.routes import requests_bp
         from myApp.admin.routes import admin_bp
         from myApp.main.routes import main_bp
+        from myApp.errors.handlers import errors_bp
 
         app.register_blueprint(users_bp)
         app.register_blueprint(requests_bp)
         app.register_blueprint(admin_bp)
         app.register_blueprint(main_bp)
+        app.register_blueprint(errors_bp)
 
     return app

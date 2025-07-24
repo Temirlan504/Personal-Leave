@@ -22,23 +22,28 @@
             <a href="{{ url_for('main.home') }}" class="nav-title">Leave Manager</a>
         </div>
         <div class="navbar-right">
-            {% if current_user.role == 'admin' or current_user.role == 'hr' %}
-                <a href="{{ url_for('admin.add_user') }}" class="navbar-link">Add User</a>
-                <a href="{{ url_for('requests.vacation_request') }}" class="navbar-link">Vacation Request</a>
-                <a href="{{ url_for('requests.pel_request') }}" class="navbar-link">Personal Leave Request</a>
+            {% if current_user.is_authenticated %}
+                {% if current_user.role == 'admin' or current_user.role == 'hr' %}
+                    <a href="{{ url_for('admin.add_user') }}" class="navbar-link">Add User</a>
+                    <a href="{{ url_for('requests.vacation_request') }}" class="navbar-link">Vacation Request</a>
+                    <a href="{{ url_for('requests.pel_request') }}" class="navbar-link">Personal Leave Request</a>
+                {% endif %}
+                <a href="{{ url_for('users.profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
+                <a href="{{ url_for('users.logout') }}" class="navbar-link">Log Out</a>
+            {% else %}
+                <a href="{{ url_for('users.login') }}" class="navbar-link">Login</a>
             {% endif %}
-            <a href="{{ url_for('users.profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
-            <a href="{{ url_for('users.logout') }}" class="navbar-link">Log Out</a>
         </div>
     </nav>
     {% endblock %}
+
     <main>
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             <div class="container mt-3">
             {% for category, message in messages %}
                 <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-                {{ message }}
+                    {{ message }}
                 </div>
             {% endfor %}
             </div>
