@@ -5,7 +5,6 @@ __pycache__/
 
 # Virtual environment
 venv/
-requirements.txt
 
 # Flask instance folder
 instance/

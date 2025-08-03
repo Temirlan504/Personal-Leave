@@ -10,19 +10,19 @@
         {{ form.hidden_tag() }}
 
         <div class="mb-3">
-            <label class="form-label">Name:</label>
+            <label class="form-label" style="font-weight: bold;">Name:</label>
             <p>{{ current_user.first_name }} {{ current_user.last_name }}</p>
         </div>
         <div class="mb-3">
-            {{ form.start_date.label(class="form-label") }}
+            {{ form.start_date.label(class="form-label", style="font-weight: bold;") }}
             {{ form.start_date(class="form-control", min=date.today().isoformat()) }}
         </div>
         <div class="mb-3">
-            {{ form.end_date.label(class="form-label") }}
+            {{ form.end_date.label(class="form-label", style="font-weight: bold;") }}
             {{ form.end_date(class="form-control", min=date.today().isoformat()) }}
         </div>
         <div class="mb-3">
-            {{ form.is_paid.label(class="form-label d-block") }}
+            {{ form.is_paid.label(class="form-label d-block", style="font-weight: bold;") }}
             {% for subfield in form.is_paid %}
                 <div class="form-check form-check-inline">
                     {{ subfield(class="form-check-input") }}

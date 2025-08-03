@@ -25,68 +25,16 @@ class User(db.Model, UserMixin):
     date_joined = db.Column(db.Date, nullable=False, default=date.today)
     base_salary = db.Column(db.Float, nullable=False, default=1.0)
 
-    vacation_days = db.Column(db.Integer, default=14)
-    paid_vacation_days = db.Column(db.Integer, default=0)
-    paid_vacation_days_taken = db.Column(db.Integer, default=0)
-    pel_days = db.Column(db.Integer, default=10)
-    pel_requests = db.relationship('PEL', backref='user', lazy=True)
+    vacation_days_total = db.Column(db.Integer, default=14, nullable=False)
+    vacation_days_taken = db.Column(db.Integer, default=0, nullable=False)
     vacation_requests = db.relationship('Vacation', backref='user', lazy=True)
 
-    def get_paid_vacation_days_used(self):
-        return sum(
-            (v.end_date - v.start_date).days + 1
-            for v in self.vacation_requests
-            if v.is_paid and v.status == 'approved'
-        )
+    pel_days_total = db.Column(db.Integer, default=10, nullable=False)
+    pel_days_paid = db.Column(db.Integer, default=3, nullable=False) # Employees entitled to 3 paid PEL days out of 10 total
+    pel_days_taken = db.Column(db.Integer, default=0, nullable=False)
+    pel_requests = db.relationship('PEL', backref='user', lazy=True)
 
-    def get_available_vacation_days(self):
-        return max(0, self.vacation_days - self.get_paid_vacation_days_used())
-
-    def get_pay_periods_worked(self):
-        return max(1, (date.today() - self.date_joined).days // 14)
-    
-    def get_total_vacation_accrued_dollars(self):
-        return self.vacation_accrued_per_period() * self.get_pay_periods_worked()
-
-    def vacation_accrued_per_period(self):
-        return (0.04 if self.get_years_of_service() < 5 else 0.06) * self.base_salary / 26
-    
-    def get_years_of_service(self):
-        return (date.today() - self.date_joined).days // 365
-
-    @property
-    def paid_pel_days_taken(self):
-        return sum(
-            (req.end_date - req.start_date).days + 1
-            for req in self.pel_requests
-            if req.is_paid and req.status == 'approved'
-        )
-
-    @property
-    def pel_days_taken(self):
-        return sum(
-            (req.end_date - req.start_date).days + 1
-            for req in self.pel_requests
-            if req.status == 'approved'
-        )
-
-    def can_take_pel(self, is_paid, requested_days):
-        total_pel_taken = sum(
-            (req.end_date - req.start_date).days + 1
-            for req in self.pel_requests
-            if req.status in ['approved', 'pending']
-        )
-        if total_pel_taken + requested_days > 10:
-            return False, "Exceeded 10 total PEL days."
-
-        paid_remaining = max(0, 3 - self.paid_pel_days_taken)
-        if is_paid and requested_days > paid_remaining:
-            msg = f"Successfully submitted PEL request.\
-                ⚠ Only {paid_remaining} PEL days will be paid. Remaining will be unpaid."
-            return True, msg  # allow with info
-        
-        return True, ""
-
+    # Methods for password management
     def get_reset_token(self, expires_sec=1800):
         s = Serializer(app.config['SECRET_KEY'], expires_in=expires_sec)
         return s.dumps({'user_id': self.id})
@@ -141,7 +89,6 @@ class Vacation(db.Model):
     @property
     def is_fully_approved(self):
         return self.admin_approved and self.hr_approved
-
 
     def __repr__(self):
         return f"Vacation('{self.user.email}', '{self.start_date}', '{self.end_date}', '{self.is_paid}')"

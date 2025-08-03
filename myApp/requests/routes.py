@@ -2,11 +2,11 @@ from datetime import date
 from flask import Blueprint, flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required
 from myApp import db
-
 from myApp.requests.forms import RequestForm
 from myApp.models import Vacation, PEL
-from myApp.requests.utils import convert_dollars_to_days_hours
+from myApp.requests.utils import process_vacation_request, process_pel_request
 from functools import wraps
+from myApp.users.utils import calculate_paid_pel_days, can_take_pel
 
 requests_bp = Blueprint('requests', __name__)
 
@@ -23,16 +23,31 @@ def pel_request():
     if form.validate_on_submit():
         start_date = form.start_date.data
         end_date = form.end_date.data
-        is_paid = form.is_paid.data
+        is_paid = form.is_paid.data == 'yes' if form.is_paid.data else False
         requested_days = (end_date - start_date).days + 1
 
+        # Check for reverse or negative dates
+        if start_date > end_date:
+            flash("Invalid date range.", "danger")
+            return redirect(url_for('requests.pel_request'))
+
         # Check limits using method in User model
-        allowed, message = current_user.can_take_pel(is_paid, requested_days)
+        allowed, message = can_take_pel(current_user, requested_days)
         if not allowed:
             flash(message, 'danger')
             return redirect(url_for('requests.pel_request'))
-        elif message:
-            flash(message, 'info')  # This means allowed == True but there's an FYI
+        
+        if is_paid:
+            paid_days, unpaid_days = calculate_paid_pel_days(current_user, requested_days)
+            if paid_days > 0 and unpaid_days > 0:
+                flash(f"✅ PEL request submitted. You will be paid for {paid_days} day(s); the remaining {unpaid_days} will be unpaid.", "info")
+            elif paid_days > 0:
+                flash(f"✅ PEL request submitted. You will be paid for {paid_days} day(s).", "info")
+            else:
+                flash(f"✅ PEL request submitted. All {requested_days} day(s) will be unpaid.", "info")
+        else:
+            flash(f"✅ PEL request submitted. All {requested_days} day(s) will be unpaid.", "info")
+
         
         pel = PEL(
             user_id=current_user.id,
@@ -59,45 +74,33 @@ def vacation_request():
     if form.validate_on_submit():
         start_date = form.start_date.data
         end_date = form.end_date.data
-        is_paid = form.is_paid.data
+        is_paid = form.is_paid.data == 'yes' if form.is_paid.data else False
         requested_days = (end_date - start_date).days + 1
-        available_days = current_user.get_available_vacation_days()
 
         # Check for reverse or negative dates
         if start_date > end_date:
-            flash("Start date cannot be after end date.", "danger")
+            flash("Invalid date range.", "danger")
+            return redirect(url_for('requests.vacation_request'))
+        
+        # Check if requested days exceed available vacation days
+        if requested_days > current_user.vacation_days_total - current_user.vacation_days_taken:
+            flash(f"You do not have enough vacation days available.", "danger")
             return redirect(url_for('requests.vacation_request'))
 
-        if is_paid and requested_days > available_days:
-            flash(f"You only have {available_days} paid vacation days left.", "danger")
-            return redirect(url_for('requests.vacation_request'))
-
-        # For info: how much would they get paid
-        if is_paid:
-            accrued_dollars = current_user.get_total_vacation_accrued_dollars()
-            daily_pay = current_user.base_salary / 260
-            requested_cost = requested_days * daily_pay
-
-            if requested_cost > accrued_dollars:
-                flash(f"⚠ You'll only be paid for up to ${accrued_dollars:.2f} "
-                      f"(approx. {convert_dollars_to_days_hours(current_user, accrued_dollars)[0]}d "
-                      f"{convert_dollars_to_days_hours(current_user, accrued_dollars)[1]}h).", "info")
-            else:
-                flash(f"You will be paid ${requested_cost:.2f} "
-                      f"(approx. {requested_days} days).", "info")
-                
         vacation = Vacation(
             user_id=current_user.id,
             start_date=form.start_date.data,
             end_date=form.end_date.data,
-            is_paid=(form.is_paid.data == 'yes' if form.is_paid.data else False)
+            is_paid= is_paid
         )
         db.session.add(vacation)
         db.session.commit()
-        flash('Vacation request submitted.')
+        flash('Vacation request submitted.', 'success')
         return redirect(url_for('users.profile', user_id=current_user.id))
     return render_template('vacation_form.html', form=form, date=date)
 
+
+# Decorator to check if user is admin or HR
 def admin_or_hr_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -112,9 +115,11 @@ def admin_or_hr_required(f):
 @admin_or_hr_required
 def request_detail(request_type, request_id):
     request_obj = PEL.query.get(request_id) if request_type == 'pel' else Vacation.query.get(request_id)
+
     if not request_obj:
         flash("Request not found.", "danger")
         return redirect(url_for('main.home'))
+
     if request.method == "POST":
         action = request.form.get("action")
         if action == "approve_admin" and current_user.role == "admin":
@@ -124,9 +129,12 @@ def request_detail(request_type, request_id):
         elif action == "decline":
             request_obj.status = "declined"
 
-        # Final approval
+        # Final approval logic
         if request_obj.admin_approved and request_obj.hr_approved:
-            request_obj.status = "approved"
+            if request_type == 'pel':
+                process_pel_request(request_obj, db)
+            elif request_type == 'vacation':
+                process_vacation_request(request_obj, db)
 
         db.session.commit()
         return redirect(url_for('requests.request_detail', request_type=request_type, request_id=request_id))
