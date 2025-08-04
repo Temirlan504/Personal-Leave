@@ -6,3 +6,4 @@ class Config:
     MAIL_USE_TLS = True
     MAIL_USERNAME = 'temirlan.yergazy@gmail.com'
     MAIL_PASSWORD = 'fdru qyes kemd ojoj'
+    WTF_CSRF_ENABLED = True

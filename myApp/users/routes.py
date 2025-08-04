@@ -1,8 +1,8 @@
+from math import ceil
 import bcrypt
 from flask import Blueprint, render_template, redirect, url_for, flash, request
 from flask_login import current_user, login_required, login_user, logout_user
 from myApp import db, bcrypt
-
 from myApp.users.forms import LoginForm, RequestResetForm, ResetPasswordForm
 from myApp.models import User, Vacation, PEL
 from myApp.users.utils import send_reset_email
@@ -64,12 +64,16 @@ def reset_token(token):
 def profile(user_id):
     user = User.query.get_or_404(user_id)
     if current_user.id != user.id and current_user.role != 'admin':
-        flash('You do not have permission to view this profile.', 'danger')
+        flash('You do not have permission to view this page.', 'danger')
         return redirect(url_for('main.home'))
 
     # Get actual PEL and Vacation requests from the DB
     vacation_requests = Vacation.query.filter_by(user_id=user.id).all()
     pel_requests = PEL.query.filter_by(user_id=user.id).all()
+    for p in pel_requests:
+        p.type = 'pel'
+    for v in vacation_requests:
+        v.type = 'vacation'
 
     # Combine and sort them by submission or start date (optional)
     all_requests = vacation_requests + pel_requests
@@ -77,12 +81,27 @@ def profile(user_id):
 
     # Pagination logic
     page = request.args.get('page', 1, type=int)
-    per_page = 5  # Number of requests per page
+    per_page = 5
     total = len(all_requests)
-    paginated_requests = all_requests[(page - 1) * per_page: page * per_page]
+    total_pages = max(ceil(total / per_page), 1)  # Avoid division by zero
+
+    # Clamp the page number
+    if page < 1:
+        page = 1
+    elif page > total_pages:
+        page = total_pages
+
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_requests = all_requests[start:end]
 
     return render_template(
-        "profile_page.html", user=user, all_requests=all_requests,
-        paginated_requests=paginated_requests, total=total,
-        page=page, per_page=per_page
+        "profile_page.html",
+        user=user,
+        all_requests=all_requests,
+        paginated_requests=paginated_requests,
+        total=total,
+        page=page,
+        per_page=per_page,
+        total_pages=total_pages
     )

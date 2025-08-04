@@ -78,15 +78,16 @@
         </tbody>
     </table>
 
-    {% if paginated_requests.has_prev or paginated_requests.has_next %}
-        <div class="pagination">
-            {% if paginated_requests.has_prev %}
-                <a href="{{ url_for('users.profile', user_id=user.id, page=paginated_requests.prev_num) }}" class="btn btn-secondary">Previous</a>
-            {% endif %}
-            {% if paginated_requests.has_next %}
-                <a href="{{ url_for('users.profile', user_id=user.id, page=paginated_requests.next_num) }}" class="btn btn-secondary">Next</a>
-            {% endif %}
-        </div>
-    {% endif %}
+    <nav aria-label="Request pagination">
+        <ul class="pagination justify-content-center mt-4">
+            <li class="page-item {% if page <= 1 %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('users.profile', user_id=user.id, page=page-1) }}">Previous</a>
+            </li>
+            <li class="page-item"><span class="page-link">Page {{ page }}</span></li>
+            <li class="page-item {% if page >= total_pages %}disabled{% endif %}">
+                <a class="page-link" href="{{ url_for('users.profile', user_id=user.id, page=page+1) }}">Next</a>
+            </li>
+        </ul>
+    </nav>
 </div>
 {% endblock %}

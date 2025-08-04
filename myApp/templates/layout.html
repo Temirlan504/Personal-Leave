@@ -27,6 +27,7 @@
                     <a href="{{ url_for('admin.add_user') }}" class="navbar-link">Add User</a>
                     <a href="{{ url_for('requests.vacation_request') }}" class="navbar-link">Vacation Request</a>
                     <a href="{{ url_for('requests.pel_request') }}" class="navbar-link">Personal Leave Request</a>
+                    <a href="{{ url_for('admin.all_users') }}" class="navbar-link">All Users</a>
                 {% endif %}
                 <a href="{{ url_for('users.profile', user_id=current_user.id) }}" class="navbar-link">Profile</a>
                 <a href="{{ url_for('users.logout') }}" class="navbar-link">Log Out</a>
