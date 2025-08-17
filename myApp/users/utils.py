@@ -1,18 +1,9 @@
 from flask import url_for
-from flask_mail import Message
-from myApp import mail
+from myApp.email_service import send_password_reset_email
 
 def send_reset_email(user):
     token = user.get_reset_token()
-    msg = Message('Password Reset Request',
-                  sender='noreply@demo.com',
-                  recipients=[user.email])
-    msg.body = f'''To reset your password, visit the following link:
-{url_for('users.reset_token', token=token, _external=True)}
-
-If you did not make this request then simply ignore this email and no changes will be made.
-'''
-    mail.send(msg)
+    send_password_reset_email(user.email, token)
 
 def get_days_requested(start_date, end_date):
     return (end_date - start_date).days + 1

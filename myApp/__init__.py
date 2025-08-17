@@ -8,11 +8,12 @@ from myApp.config import Config
 
 db = SQLAlchemy()
 migrate = Migrate()
+
 bcrypt = Bcrypt()
 login_manager = LoginManager()
 login_manager.login_view = 'users.login'
-mail = Mail()
 
+mail = Mail()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
