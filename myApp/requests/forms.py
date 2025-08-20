@@ -8,7 +8,7 @@ class RequestForm(FlaskForm):
     start_date = DateField('Start Date (YYYY-MM-DD)', format='%Y-%m-%d', validators=[DataRequired()])
     end_date = DateField('End Date (YYYY-MM-DD)', format='%Y-%m-%d', validators=[DataRequired()])
     is_paid = RadioField('Request pay?', choices=[('yes', 'Yes'), ('no', 'No')], validators=[DataRequired()])
-    submit = SubmitField('Submit PEL Request')
+    submit = SubmitField('Submit Request')
 
     def validate_start_date(self, start_date):
         if start_date.data < date.today():

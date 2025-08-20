@@ -20,7 +20,7 @@ class User(db.Model, UserMixin):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone = db.Column(db.String(15), unique=True, nullable=True)
     image_file = db.Column(db.String(20), nullable=False, default=get_random_image)
-    password = db.Column(db.String(60), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='Employee')
     date_joined = db.Column(db.Date, nullable=False, default=date.today)
     base_salary = db.Column(db.Float, nullable=False, default=1.0)
